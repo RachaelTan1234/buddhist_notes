@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>佛学修学社区</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#D97706">
+  
+  <link rel="stylesheet" href="css/style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="logo-box">
+      <img src="https://img.icons8.com/color/48/lotus.png" alt="莲花" class="app-icon">
+      <span class="app-title" id="t-appTitle">🌸 佛学修学社区</span>
+    </div>
+    <div class="header-right">
+      <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">English</button>
+      <span id="userInfoDisplay" style="font-size:12px; color:#78350F;">未登录</span>
+      <button class="logout-btn" onclick="handleLogout()" id="logoutBtn" style="display:none;">退出登录</button>
+    </div>
+  </header>
+
+  <main class="container">
+    
+    <nav class="tab-menu">
+      <button class="tab-btn active" id="tab-btn-notice" onclick="switchTab('notice')">📢 <span id="t-tabNotice">社区公告</span></button>
+      <button class="tab-btn" id="tab-btn-posts" onclick="switchTab('posts')">🌸 <span id="t-tabPosts">随喜心得</span></button>
+      <button class="tab-btn" id="tab-btn-qa" onclick="switchTab('qa')">❓ <span id="t-tabQA">疑惑求解</span></button>
+      <button class="tab-btn" id="tab-btn-drain" onclick="switchTab('drain')">🔒 <span id="t-tabDrain">情绪排水沟</span></button>
+    </nav>
+
+    <section id="section-notice" class="tab-content active">
+      <div id="adminNoticePublish" class="publish-card" style="display:none;">
+        <h4 id="t-adminTitle" style="margin:0 0 10px 0; color:#78350F;">📢 发布社区公告 (仅管理员)</h4>
+        <textarea id="noticeContent" class="input-field" rows="3" placeholder="填写公告内容..."></textarea>
+        <div class="publish-action">
+          <label class="btn-secondary">📷 <span>图片</span>
+            <input type="file" id="noticeImage" accept="image/*" style="display:none;" onchange="showFileName(this, 'noticeFileName')">
+          </label>
+          <span id="noticeFileName" class="file-name" style="font-size:11px; color:#B45309;"></span>
+          <button class="btn-primary" onclick="submitNotice()" id="t-pubBtn1">发布公告</button>
+        </div>
+      </div>
+      <div id="noticeContainer"></div>
+    </section>
+
+    <section id="section-posts" class="tab-content">
+      <div class="publish-card">
+        <input type="text" id="postAuthorAlias" class="input-field" placeholder="署名/法名 (可自定义，保护内向同修)">
+        <textarea id="postContent" class="input-field" rows="3" placeholder="分享修学心得与随喜善行..."></textarea>
+        <div class="publish-action">
+          <label class="btn-secondary">📷 <span>图片</span>
+            <input type="file" id="postImage" accept="image/*" style="display:none;" onchange="showFileName(this, 'postFileName')">
+          </label>
+          <span id="postFileName" class="file-name" style="font-size:11px; color:#B45309;"></span>
+          <button class="btn-primary" onclick="submitPost()" id="t-pubBtn2">合十发布</button>
+        </div>
+      </div>
+      <div id="postsContainer"></div>
+    </section>
+
+    <section id="section-qa" class="tab-content">
+      <div class="publish-card">
+        <input type="text" id="qaAuthorAlias" class="input-field" placeholder="署名/法名 (可自定义)">
+        <textarea id="qaContent" class="input-field" rows="3" placeholder="向师父请教佛学疑问..."></textarea>
+        <div class="publish-action">
+          <label class="btn-secondary">📷 <span>图片</span>
+            <input type="file" id="qaImage" accept="image/*" style="display:none;" onchange="showFileName(this, 'qaFileName')">
+          </label>
+          <span id="qaFileName" class="file-name" style="font-size:11px; color:#B45309;"></span>
+          <button class="btn-primary" onclick="submitQA()" id="t-pubBtn3">请教疑惑</button>
+        </div>
+      </div>
+      <div id="qaContainer"></div>
+    </section>
+
+    <section id="section-drain" class="tab-content">
+      <div class="publish-card">
+        <p class="notice-hint" id="t-drainHint" style="font-size:11px; color:#D97706; margin-top:0;">🔒 绝对私密：此处内容仅您自己可见，师父与其他同修完全无法查看。</p>
+        <textarea id="drainContent" class="input-field" rows="3" placeholder="倾诉烦恼与苦水..."></textarea>
+        <div class="publish-action">
+          <label class="btn-secondary">📷 <span>图片</span>
+            <input type="file" id="drainImage" accept="image/*" style="display:none;" onchange="showFileName(this, 'drainFileName')">
+          </label>
+          <span id="drainFileName" class="file-name" style="font-size:11px; color:#B45309;"></span>
+          <button class="btn-primary" onclick="submitDrain()" id="t-pubBtn4">倾诉保存</button>
+        </div>
+      </div>
+      <div id="drainContainer"></div>
+    </section>
+
+  </main>
+
+  <div id="rulesModal" class="overlay">
+    <div class="modal-card">
+      <h3 style="text-align: center; color:#78350F; margin-top:0;" id="t-ruleTitle">🌺 同修修学公约</h3>
+      <div class="notice-rules">
+        <p>1. <b>正信正见</b>：以慈悲包容之心交流佛学心得。</p>
+        <p>2. <b>理智发言</b>：不传播不实信息，理性探讨修学。</p>
+        <p>3. <b>随喜赞叹</b>：见他人善行修学，生欢喜随喜心。</p>
+      </div>
+      <button class="btn-primary" style="width:100%;" onclick="acceptRules()" id="t-ruleBtn">我已阅读并遵守公约</button>
+    </div>
+  </div>
+
+  <div id="authModal" class="overlay" style="display:none;">
+    <div class="modal-card">
+      <h3 style="text-align: center; color:#78350F; margin-top:0;" id="t-authTitle">同修登录与注册</h3>
+      
+      <div class="role-selector">
+        <label><input type="radio" name="userRole" value="同修" checked> 🙏 <span id="t-r1">同修</span></label>
+        <label><input type="radio" name="userRole" value="师父"> ☸️ <span id="t-r2">师父</span></label>
+      </div>
+
+      <input type="text" id="authUsername" class="input-field" placeholder="账号 / 法名">
+      <input type="password" id="authPassword" class="input-field" placeholder="密码">
+      
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button class="btn-primary" style="flex:1;" onclick="handleAuth('login')" id="t-loginBtn">登录</button>
+        <button class="btn-secondary" style="flex:1;" onclick="handleAuth('register')" id="t-regBtn">注册新账号</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/notice.js"></script>
+  <script src="js/posts.js"></script>
+  <script src="js/qa.js"></script>
+  <script src="js/diary.js"></script>
+  <script src="sw.js"></script>
+
+</body>
+</html>
